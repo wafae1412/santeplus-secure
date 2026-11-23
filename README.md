@@ -19,7 +19,8 @@ santeplus-secure/
 │   │   └── OrdonnancesScreen.tsx  Biométrie avant affichage
 │   └── utils/validators.ts      Validation UUID et URL
 ├── mock-backend/                API Express simulée
-│   └── server.js
+│   ├── server.js
+│   └── test.js                  Tests de l'API
 ├── .env.example
 └── README.md
 ```
@@ -27,7 +28,7 @@ santeplus-secure/
 ## Prérequis
 
 - Node.js (version LTS) et Git
-- Expo Go sur un téléphone Android, ou un émulateur Android (Android Studio)
+ - Expo Go sur un téléphone (Android ou iOS), ou un émulateur Android (Android Studio)
 
 ## Installation
 
@@ -110,24 +111,34 @@ Comptes de test :
 
 ## Tests
 
-Tests exécutés sur le backend avec `curl` :
+Démarrer d'abord le backend (`npm start` dans `mock-backend`), puis dans un autre terminal :
 
-| Cas | Résultat attendu | Résultat obtenu |
-|---|---|---|
-| Ordonnances sans jeton | 401 | 401 |
-| Connexion avec mauvais mot de passe | 401 | 401 |
-| Patient connecté : ordonnances | 200 | 200 |
-| Patient sur la route admin | 403 | 403 |
-| Patient sur son rendez-vous | 200 | 200 |
-| Patient sur le rendez-vous d'un autre | 404 | 404 |
-| Admin sur la route admin | 200 | 200 |
-| Renouvellement avec jeton valide | 200 | 200 |
-| Renouvellement avec le même jeton rejoué | 401 | 401 |
-| 6 appels rapides au proxy cartographie | 429 au 6e | 429 au 6e |
+```bash
+cd mock-backend
+npm test
+```
+
+Le script `test.js` vérifie :
+
+| Cas | Résultat attendu |
+|---|---|
+| Ordonnances sans jeton | 401 |
+| Connexion avec un mauvais mot de passe | 401 |
+| Patient : ordonnances | 200 |
+| Patient : route admin | 403 |
+| Patient : son rendez-vous | 200 |
+| Patient : rendez-vous d'un autre patient | 404 |
+| Admin : route admin | 200 |
+| Renouvellement avec un jeton valide | 200 |
+| Renouvellement avec le même jeton rejoué | 401 |
+| Ancien jeton après déconnexion | 401 |
+| Proxy carte : 6e appel en une minute | 429 |
+
+Redémarrer le serveur avant chaque lancement : le quota de la carte et les jetons sont gardés en mémoire.
 
 Le code TypeScript de l'application compile sans erreur (`npx tsc --noEmit`).
 
-Tests manuels à réaliser sur l'appareil (non automatisés) : connexion, ordonnances avec biométrie, déconnexion, lien profond.
+Tests manuels à réaliser sur l'appareil : connexion, ordonnances avec authentification locale, déconnexion, lien profond.
 
 Lien profond en test dans Expo Go :
 
